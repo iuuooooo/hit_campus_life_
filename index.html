@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HIT校园生活圈 Web Demo</title>
+  <style>
+    :root {
+      --hit-blue: #24508f;
+      --hit-blue-2: #153662;
+      --cyan: #1f9bb4;
+      --green: #27805d;
+      --orange: #d97726;
+      --red: #c24145;
+      --ink: #1d2939;
+      --muted: #667085;
+      --line: #dbe4ef;
+      --soft: #f4f7fb;
+      --soft-2: #eef4fb;
+      --paper: #ffffff;
+      --shadow: 0 14px 36px rgba(31, 65, 112, .10);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: #f6f9fd;
+      overflow: hidden;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; border: 0; }
+    img { display: block; max-width: 100%; }
+    .hidden { display: none !important; }
+
+    .topbar {
+      height: 74px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 30px;
+      background: rgba(255, 255, 255, .96);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(37, 80, 143, .045);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 210px;
+      color: var(--hit-blue);
+      font-weight: 900;
+      font-size: 20px;
+    }
+
+    .brand-mark, .avatar {
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--hit-blue), var(--hit-blue-2));
+      font-weight: 900;
+      flex: none;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      letter-spacing: .5px;
+      font-size: 13px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      flex: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+
+    .nav button {
+      height: 100%;
+      padding: 0 14px;
+      color: #344054;
+      background: transparent;
+      font-weight: 800;
+      white-space: nowrap;
+      position: relative;
+    }
+    .nav button.active { color: var(--hit-blue); }
+    .nav button.active::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 0;
+      height: 4px;
+      background: var(--hit-blue);
+      border-radius: 999px 999px 0 0;
+    }
+
+    .search {
+      width: min(320px, 25vw);
+      height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--muted);
+    }
+    .search input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+    }
+
+    .account-switch {
+      display: flex;
+      gap: 6px;
+      padding: 4px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+    }
+    .account-switch button {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .account-switch button.active {
+      background: var(--hit-blue);
+      color: #fff;
+    }
+
+    .app-shell {
+      height: calc(100vh - 74px);
+      display: grid;
+      grid-template-columns: 320px minmax(520px, 760px) minmax(330px, 430px) minmax(240px, 280px);
+      gap: 22px;
+      padding: 26px 30px 22px;
+      max-width: 1900px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    .rail, .feed, .widgets, .aside {
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: #b9c8dc transparent;
+      padding-right: 4px;
+    }
+    .rail::-webkit-scrollbar, .feed::-webkit-scrollbar, .widgets::-webkit-scrollbar, .aside::-webkit-scrollbar { width: 8px; }
+    .rail::-webkit-scrollbar-thumb, .feed::-webkit-scrollbar-thumb, .widgets::-webkit-scrollbar-thumb, .aside::-webkit-scrollbar-thumb {
+      background: #b9c8dc;
+      border-radius: 999px;
+    }
+
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 30px;
+    }
+
+    .rail, .widgets, .aside {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 26px;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(37, 80, 143, .035);
+      overflow: hidden;
+      flex: none;
+    }
+
+    .pad { padding: 16px; }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      color: #233853;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .muted { color: var(--muted); }
+    .small { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .profile-hero {
+      padding: 16px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .profile-row { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.28);
+    }
+    .avatar.large { width: 58px; height: 58px; font-size: 22px; }
+    .profile-name { font-weight: 900; }
+    .profile-sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .stat {
+      background: #fff;
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 6px;
+      text-align: center;
+    }
+    .stat b { display: block; font-size: 18px; }
+    .stat span { font-size: 12px; color: var(--muted); }
+
+    .side-menu { display: flex; flex-direction: column; gap: 4px; }
+    .side-menu button {
+      min-height: 42px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      border-radius: 8px;
+      color: #405168;
+      font-weight: 800;
+      text-align: left;
+    }
+    .side-menu button:hover, .side-menu button.active {
+      background: var(--soft-2);
+      color: var(--hit-blue);
+    }
+
+    .hero {
+      min-height: 252px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      align-items: center;
+      gap: 20px;
+      padding: 34px 38px;
+      background:
+        linear-gradient(90deg, rgba(236,243,255,.95), rgba(240,246,255,.86)),
+        url("data:image/svg+xml,%3Csvg width='900' height='260' viewBox='0 0 900 260' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%2324508f' stroke-width='2' opacity='.28'%3E%3Cpath d='M520 230h300M565 230V120h210v110M610 230v-76h48v76M692 230v-76h48v76M565 120h210M590 120l32-50h92l34 50M650 230V76h32v154M650 76l16-48 16 48M490 230c28-42 70-42 100 0M770 230c25-45 70-45 95 0M80 228h260M130 228V142h160v86M170 228v-52h40v52M230 228v-52h40v52M130 142h160M150 142l25-40h70l25 40'/%3E%3Cpath d='M70 90c22-16 45-16 68 0M430 76c20-13 42-13 63 0M358 94c12-9 26-9 40 0'/%3E%3C/g%3E%3C/svg%3E") right bottom/70% no-repeat;
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      color: var(--hit-blue);
+      line-height: 1.2;
+    }
+    .hero p {
+      margin: 0 0 18px;
+      color: #48627f;
+      line-height: 1.75;
+    }
+    .hero-img {
+      height: 150px;
+      border-radius: 8px;
+      background: url("https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=680&q=72") center/cover;
+      border: 1px solid rgba(255,255,255,.7);
+      box-shadow: var(--shadow);
+    }
+
+    .primary-btn, .secondary-btn, .text-btn, .danger-btn {
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 8px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .primary-btn { background: var(--hit-blue); color: #fff; }
+    .primary-btn:hover { background: var(--hit-blue-2); }
+    .secondary-btn {
+      background: #fff;
+      color: var(--hit-blue);
+      border: 1px solid var(--line);
+    }
+    .text-btn { background: transparent; color: var(--hit-blue); padding-inline: 8px; }
+    .danger-btn { background: #fff1f1; color: var(--red); }
+
+    .composer {
+      display: grid;
+      gap: 12px;
+    }
+    .composer-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 140px;
+      gap: 10px;
+    }
+    .field, .composer textarea, .comment-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      outline: 0;
+    }
+    .field { height: 42px; padding: 0 12px; }
+    .composer textarea {
+      min-height: 92px;
+      resize: vertical;
+      padding: 12px;
+      line-height: 1.7;
+    }
+    .composer-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .tool-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tool {
+      height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: #405168;
+      font-weight: 800;
+    }
+    .tool.active {
+      color: var(--hit-blue);
+      background: var(--soft-2);
+      border-color: #b7c9df;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-tabs button {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: #415066;
+      font-weight: 850;
+    }
+    .filter-tabs button.active {
+      background: var(--hit-blue);
+      color: #fff;
+      border-color: var(--hit-blue);
+    }
+
+    .post {
+      padding: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .post:first-child { border-top: 0; }
+    .post-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .post-head .spacer { flex: 1; }
+    .author { font-weight: 900; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: var(--soft-2);
+      color: var(--hit-blue);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .badge.org { background: #e8f7fb; color: #08748a; }
+    .post-title { margin: 6px 0; color: #203650; font-size: 17px; font-weight: 900; }
+    .post-text { margin: 0 0 10px; color: #44556b; line-height: 1.75; white-space: pre-wrap; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .tag {
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--hit-blue);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .post-image {
+      min-height: 126px;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      border: 1px solid var(--line);
+    }
+    .post-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+      border-top: 1px solid #edf1f6;
+    }
+    .post-actions button {
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .post-actions button:hover, .post-actions button.active {
+      background: var(--soft-2);
+      color: var(--hit-blue);
+    }
+
+    .comment-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .comment-input {
+      height: 38px;
+      padding: 0 12px;
+    }
+    .comments {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .comment {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: #46566b;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+    .comment b { color: #233853; }
+
+    .rec-list { display: grid; gap: 10px; }
+    .person, .notice, .activity, .mini-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .person {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+    .person .avatar { width: 38px; height: 38px; }
+    .person-name { font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .notice, .activity { display: flex; gap: 10px; }
+    .notice-ico {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      background: var(--soft-2);
+      color: var(--hit-blue);
+      font-weight: 900;
+    }
+    .activity img {
+      width: 86px;
+      height: 70px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex: none;
+    }
+    .activity b { display: block; margin-bottom: 4px; }
+    .progress {
+      height: 7px;
+      background: var(--soft-2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--hit-blue));
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .dash {
+      padding: 12px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .dash b { display: block; color: var(--hit-blue); font-size: 22px; margin-bottom: 2px; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 80;
+      background: #17233a;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 16px 38px rgba(0,0,0,.24);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: .22s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .login-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 26px;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(36,80,143,.10), transparent 28%),
+        radial-gradient(circle at 84% 86%, rgba(31,155,180,.08), transparent 30%),
+        #fbfdff;
+    }
+    .login-shell {
+      width: min(1460px, 100%);
+      min-height: 760px;
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 20px 54px rgba(37,80,143,.14);
+      overflow: hidden;
+    }
+    .login-left {
+      position: relative;
+      padding: 58px 64px;
+      border-right: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,249,253,.82)),
+        url("data:image/svg+xml,%3Csvg width='900' height='360' viewBox='0 0 900 360' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%2324508f' stroke-width='2' opacity='.32'%3E%3Cpath d='M60 320h780M230 320V155h430v165M288 320v-105h75v105M528 320v-105h75v105M230 155h430M260 155l48-70h274l50 70M425 320V115h54v205M425 115l27-76 27 76M105 320c28-54 76-54 105 0M688 320c34-58 92-58 126 0M125 96c26-18 52-18 78 0M700 92c22-16 48-16 70 0M78 180c58 0 95 24 126 42M716 178c-54 4-94 26-130 50'/%3E%3Cpath d='M265 190h330M265 230h330M265 270h330M336 155v165M398 155v165M502 155v165M570 155v165'/%3E%3C/g%3E%3C/svg%3E") center bottom/100% 48% no-repeat;
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--hit-blue);
+      font-size: 30px;
+      font-weight: 900;
+    }
+    .login-brand .brand-mark {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--hit-blue);
+      border: 2px solid var(--hit-blue);
+    }
+    .login-slogan {
+      margin-top: 210px;
+      color: var(--hit-blue);
+      font-size: 42px;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+    .login-copy {
+      margin-top: 18px;
+      color: #355983;
+      font-size: 18px;
+      letter-spacing: .5px;
+    }
+    .login-right {
+      display: grid;
+      place-items: center;
+      padding: 70px 72px;
+    }
+    .login-card {
+      width: min(480px, 100%);
+    }
+    .login-card h1 {
+      margin: 0 0 10px;
+      color: var(--hit-blue);
+      font-size: 32px;
+    }
+    .login-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--line);
+      margin: 34px 0 28px;
+    }
+    .login-tabs button {
+      height: 44px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+      border-radius: 0;
+      position: relative;
+    }
+    .login-tabs button.active { color: var(--hit-blue); }
+    .login-tabs button.active::after {
+      content: "";
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      bottom: -1px;
+      height: 3px;
+      background: var(--hit-blue);
+    }
+    .login-field {
+      height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      margin-bottom: 16px;
+      color: #7b8ba0;
+      background: #fff;
+    }
+    .login-field input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+    }
+    .login-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 18px 0 26px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .login-options label { display: flex; align-items: center; gap: 8px; }
+    .login-submit {
+      width: 100%;
+      height: 56px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--hit-blue), var(--hit-blue-2));
+      color: #fff;
+      font-weight: 900;
+      font-size: 16px;
+    }
+    .login-other {
+      margin-top: 28px;
+      display: grid;
+      gap: 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .login-icons {
+      display: flex;
+      justify-content: center;
+      gap: 70px;
+    }
+    .login-icons button {
+      width: 58px;
+      height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--hit-blue);
+      font-weight: 900;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .feature-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+      min-height: 94px;
+    }
+    .feature-card b { display: block; margin-bottom: 6px; color: #233853; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border-radius: 999px;
+      color: var(--hit-blue);
+      background: var(--soft-2);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .market-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .market-card img { width: 100%; height: 128px; object-fit: cover; }
+    .market-card .pad { padding: 12px; }
+    .price { color: #d6452f; font-weight: 900; font-size: 17px; }
+
+    @media (max-width: 1180px) {
+      .app-shell { grid-template-columns: 230px minmax(0, 1fr); }
+      .widgets, .aside { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-img { display: none; }
+      .search { display: none; }
+    }
+
+    @media (max-width: 820px) {
+      body { overflow: auto; }
+      .topbar { position: sticky; overflow-x: auto; padding: 0 12px; }
+      .brand { min-width: 172px; }
+      .account-switch { margin-left: auto; }
+      .app-shell {
+        height: auto;
+        min-height: calc(100vh - 74px);
+        overflow: visible;
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+      .rail { display: none; }
+      .feed {
+        height: auto;
+        overflow: visible;
+        padding-right: 0;
+      }
+      .composer-top, .comment-box, .two-col { grid-template-columns: 1fr; }
+      .image-grid, .dashboard-grid { grid-template-columns: 1fr; }
+      .nav button { padding: 0 10px; }
+      .login-shell { grid-template-columns: 1fr; min-height: auto; }
+      .login-left { display: none; }
+      .login-right { padding: 42px 22px; }
+      .mini-grid, .market-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section class="login-page" id="loginPage">
+    <div class="login-shell">
+      <div class="login-left">
+        <div class="login-brand"><div class="brand-mark">HIT</div><div><div>HIT校园生活圈</div><div class="small">连接校园生活，分享每一刻精彩</div></div></div>
+        <div class="login-slogan">在HIT，遇见同频的你</div>
+        <div class="login-copy">探索校园生活 · 结识志同道合的伙伴 · 记录成长每一步</div>
+      </div>
+      <div class="login-right">
+        <div class="login-card">
+          <h1>欢迎登录</h1>
+          <div class="small">登录后即可体验 HIT 校园生活圈全部功能</div>
+          <div class="login-tabs"><button class="active">账号登录</button><button>手机登录</button></div>
+          <label class="login-field">账号<input placeholder="学号 / 工号 / 用户名" value="student_demo" /></label>
+          <label class="login-field">密码<input type="password" placeholder="密码" value="123456" /></label>
+          <div class="login-options"><label><input type="checkbox" /> 记住我</label><button class="text-btn">忘记密码?</button></div>
+          <button class="login-submit" data-action="login">登录</button>
+          <div class="login-other">
+            <div class="small">其他登录方式</div>
+            <div class="login-icons"><button data-action="login">微信</button><button data-action="login">QQ</button></div>
+            <div>还没有账号？ <button class="text-btn" data-action="login">立即注册</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <header class="topbar app-ui hidden">
+    <div class="brand"><div class="brand-mark">HIT</div><span>校园生活圈</span></div>
+    <nav class="nav" id="nav"></nav>
+    <label class="search">⌕<input id="searchInput" placeholder="搜索帖子、同学、社团、话题" /></label>
+    <div class="account-switch">
+      <button id="studentBtn" class="active" data-account="student">个人</button>
+      <button id="orgBtn" data-account="org">社团</button>
+    </div>
+  </header>
+
+  <main class="app-shell app-ui hidden">
+    <aside class="rail" id="leftRail"></aside>
+    <section class="feed" id="feed"></section>
+    <aside class="widgets" id="centerWidgets"></aside>
+    <aside class="aside" id="rightAside"></aside>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const imagePool = [
+      "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=72",
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=72"
+    ];
+
+    const seed = {
+      loggedIn: false,
+      account: "student",
+      page: "home",
+      filter: "all",
+      search: "",
+      selectedImage: true,
+      likes: {},
+      follows: ["u2"],
+      friends: ["u1"],
+      notices: [
+        { id: "n1", type: "互动", text: "摄影社回复了你的评论：周末外拍可以一起出发。", time: "10分钟前" },
+        { id: "n2", type: "活动", text: "羽毛球社团训练今晚 19:00 在体育馆 B 区开始。", time: "42分钟前" }
+      ],
+      users: [
+        { id: "me", type: "student", name: "小宇学长", avatar: "宇", meta: "计算机学院 2023级", posts: 28, friends: 156, fans: 89 },
+        { id: "orgMe", type: "org", name: "HIT摄影社", avatar: "摄", meta: "校级认证社团 · 1246名成员", posts: 64, friends: 12, fans: 1246 },
+        { id: "u1", type: "student", name: "一只鱼鱼", avatar: "鱼", meta: "计算机学院 · 喜欢自习和摄影", match: "92%" },
+        { id: "u2", type: "student", name: "篮球少年", avatar: "篮", meta: "材料学院 · 约球/健身", match: "86%" },
+        { id: "u3", type: "student", name: "小陈同学", avatar: "陈", meta: "经管学院 · 期末搭子", match: "81%" },
+        { id: "o1", type: "org", name: "羽毛球社", avatar: "羽", meta: "训练、校赛、友谊赛", match: "运动" },
+        { id: "o2", type: "org", name: "机器人创新协会", avatar: "机", meta: "竞赛、项目、招新", match: "科创" }
+      ],
+      posts: [
+        {
+          id: "p1",
+          authorId: "u1",
+          type: "student",
+          channel: "life",
+          title: "主楼前的春天真的很适合拍照",
+          text: "下午和室友从图书馆出来，阳光刚好落在主楼台阶上。顺手拍了几张，感觉哈尔滨的春天终于来了。",
+          tags: ["春日校园", "随手拍", "图书馆"],
+          images: [imagePool[0], imagePool[1], imagePool[3]],
+          time: "2小时前",
+          baseLikes: 23,
+          comments: [
+            ["小宇学长", "这组图很适合放到迎新手册里。"],
+            ["小陈同学", "第三张的光线好好看。"]
+          ]
+        },
+        {
+          id: "p2",
+          authorId: "o1",
+          type: "org",
+          channel: "club",
+          title: "羽毛球社周三晚训开放报名",
+          text: "本周三 19:00-21:00，体育馆 B 区开放新成员体验课。自带球拍即可，社团会准备训练球和基础分组。",
+          tags: ["社团活动", "运动", "报名中"],
+          images: [imagePool[5]],
+          time: "3小时前",
+          baseLikes: 41,
+          comments: [
+            ["篮球少年", "零基础可以来吗？"],
+            ["羽毛球社", "可以，会按水平分组。"]
+          ]
+        },
+        {
+          id: "p3",
+          authorId: "u2",
+          type: "student",
+          channel: "help",
+          title: "求一位数据结构期末复习搭子",
+          text: "想找同学一起刷题，主要看树、图和排序。时间暂定每晚 8 点，地点图书馆二楼。",
+          tags: ["学习搭子", "数据结构", "期末复习"],
+          images: [imagePool[6]],
+          time: "昨天",
+          baseLikes: 18,
+          comments: [
+            ["一只鱼鱼", "我也要复习图，可以一起。"]
+          ]
+        }
+      ],
+      activities: [
+        { id: "a1", title: "摄影社周末中央大街外拍", org: "HIT摄影社", date: "周六 14:00", place: "正心楼门口集合", joined: 38, cap: 50, img: imagePool[4] },
+        { id: "a2", title: "机器人创新协会项目展示", org: "机器人创新协会", date: "周五 18:30", place: "活动中心 302", joined: 72, cap: 100, img: imagePool[2] },
+        { id: "a3", title: "羽毛球社新生体验课", org: "羽毛球社", date: "周三 19:00", place: "体育馆 B 区", joined: 26, cap: 40, img: imagePool[5] }
+      ],
+      applicants: [
+        { id: "ap1", name: "一只鱼鱼", text: "想报名周末外拍，有相机基础。", status: "待处理" },
+        { id: "ap2", name: "小陈同学", text: "希望加入摄影社，偏好人像后期。", status: "待处理" }
+      ],
+      discussions: [
+        { id: "d1", title: "如何高效背单词？我的英语学习方法总结", user: "星辰大海", area: "学习方法分享", likes: 128, replies: 45, img: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=500&q=70" },
+        { id: "d2", title: "考研复试常见问题汇总", user: "可乐不加冰", area: "考研保研交流", likes: 87, replies: 36, img: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=500&q=70" },
+        { id: "d3", title: "期末复习怎么安排？我的复习计划表分享", user: "小林学姐", area: "课程推荐分享", likes: 62, replies: 18, img: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=500&q=70" }
+      ],
+      market: [
+        { title: "iPad Air5 64G 深空灰", price: 2450, seller: "学长不学", img: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=500&q=70" },
+        { title: "高数同济七版上下册", price: 35, seller: "考研上岸", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=500&q=70" },
+        { title: "联想小新 Pro16 2022", price: 3850, seller: "不吃香菜", img: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=500&q=70" },
+        { title: "AirPods Pro 二代", price: 1200, seller: "数码控", img: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=500&q=70" }
+      ]
+    };
+
+    const storeKey = "hit-campus-life-demo-v4";
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(storeKey));
+        return cached ? { ...seed, ...cached } : structuredClone(seed);
+      } catch (e) {
+        return JSON.parse(JSON.stringify(seed));
+      }
+    }
+
+    function save() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+    }
+
+    function currentUser() {
+      return state.account === "org"
+        ? state.users.find(u => u.id === "orgMe")
+        : state.users.find(u => u.id === "me");
+    }
+
+    function userById(id) {
+      return state.users.find(u => u.id === id) || currentUser();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function setPage(page) {
+      state.page = page;
+      state.filter = page === "home" ? state.filter : "all";
+      save();
+      render();
+    }
+
+    function switchAccount(account) {
+      state.account = account;
+      state.page = "home";
+      state.filter = account === "org" ? "club" : "all";
+      save();
+      render();
+      toast(account === "org" ? "已切换为社团账号：功能区展示活动管理与成员申请" : "已切换为个人账号：功能区展示好友、搭子与个人动态");
+    }
+
+    function login() {
+      state.loggedIn = true;
+      save();
+      render();
+      toast("登录成功，欢迎进入 HIT 校园生活圈");
+    }
+
+    function render() {
+      document.getElementById("loginPage").classList.toggle("hidden", !!state.loggedIn);
+      document.querySelectorAll(".app-ui").forEach(el => el.classList.toggle("hidden", !state.loggedIn));
+      if (!state.loggedIn) return;
+      renderNav();
+      renderLeft();
+      renderFeed();
+      renderWidgets();
+      renderRight();
+      document.getElementById("studentBtn").classList.toggle("active", state.account === "student");
+      document.getElementById("orgBtn").classList.toggle("active", state.account === "org");
+      document.getElementById("searchInput").value = state.search || "";
+    }
+
+    function renderNav() {
+      const base = state.account === "org"
+        ? [["home", "工作台"], ["club", "社团发布"], ["members", "成员申请"], ["activity", "活动管理"], ["notice", "通知中心"]]
+        : [["home", "首页"], ["friend", "交友"], ["schedule", "记录"], ["notice", "通知"], ["help", "求助"], ["discussion", "讨论"]];
+      document.getElementById("nav").innerHTML = base.map(([id, label]) =>
+        `<button class="${state.page === id ? "active" : ""}" data-page="${id}">${navIcon(id)} ${label}</button>`
+      ).join("");
+    }
+
+    function navIcon(id) {
+      return { home: "⌂", friend: "♧", schedule: "□", notice: "♢", help: "?", discussion: "○", club: "社", members: "审", activity: "动" }[id] || "•";
+    }
+
+    function renderLeft() {
+      const me = currentUser();
+      const menu = state.account === "org"
+        ? [["home", "社团工作台"], ["club", "官方内容"], ["activity", "活动管理"], ["members", "成员申请"], ["notice", "通知发布"], ["reset", "重置演示数据"]]
+        : [["home", "推荐信息流"], ["friend", "找搭子"], ["schedule", "日程助手"], ["discussion", "讨论广场"], ["activity", "活动广场"], ["help", "求助与二手"], ["notice", "消息通知"], ["reset", "重置演示数据"]];
+
+      document.getElementById("leftRail").innerHTML = `
+        <section class="panel profile-hero">
+          <div class="profile-row">
+            <div class="avatar large">${me.avatar}</div>
+            <div>
+              <div class="profile-name">${me.name}</div>
+              <div class="profile-sub">${me.meta}</div>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b>${me.posts}</b><span>${state.account === "org" ? "发布" : "动态"}</span></div>
+            <div class="stat"><b>${me.friends}</b><span>${state.account === "org" ? "成员" : "好友"}</span></div>
+            <div class="stat"><b>${me.fans}</b><span>${state.account === "org" ? "关注" : "粉丝"}</span></div>
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-title">功能区</div>
+          <div class="side-menu" style="margin-top:10px">
+            ${menu.map(([id, label]) => `
+              <button class="${state.page === id ? "active" : ""}" data-page="${id}">${iconFor(id)} ${label}</button>
+            `).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head">
+            <div class="section-title">${state.account === "org" ? "社团待办" : "今日提醒"}</div>
+            <span class="small">${new Date().toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" })}</span>
+          </div>
+          ${leftTodos()}
+        </section>
+      `;
+    }
+
+    function leftTodos() {
+      if (state.account === "org") {
+        return `
+          <div class="notice"><div class="notice-ico">审</div><div><b>成员申请</b><div class="small">${state.applicants.filter(a => a.status === "待处理").length} 条申请待处理</div></div></div>
+          <div class="notice"><div class="notice-ico">发</div><div><b>本周活动</b><div class="small">摄影社外拍需要发布集合提醒</div></div></div>
+          <div class="notice"><div class="notice-ico">数</div><div><b>内容数据</b><div class="small">官方帖子本周互动提升 18%</div></div></div>
+        `;
+      }
+      return `
+        <div class="notice"><div class="notice-ico">课</div><div><b>数据结构复习</b><div class="small">今晚 20:00 图书馆二楼</div></div></div>
+        <div class="notice"><div class="notice-ico">动</div><div><b>羽毛球体验课</b><div class="small">周三 19:00 体育馆 B 区</div></div></div>
+        <div class="notice"><div class="notice-ico">友</div><div><b>好友申请</b><div class="small">小陈同学与你匹配度 81%</div></div></div>
+      `;
+    }
+
+    function renderFeed() {
+      const feed = document.getElementById("feed");
+      if (state.page === "friend") return renderFriendPage(feed);
+      if (state.page === "activity") return renderActivityPage(feed);
+      if (state.page === "members") return renderMembersPage(feed);
+      if (state.page === "notice") return renderNoticePage(feed);
+      if (state.page === "discussion") return renderDiscussionPage(feed);
+      if (state.page === "schedule") return renderSchedulePage(feed);
+      if (state.page === "help") return renderHelpPage(feed);
+      if (state.page === "club") {
+        state.filter = "club";
+      }
+
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>${state.account === "org" ? "社团内容管理中心" : "在 HIT，遇见同频的你"}</h1>
+            <p>${state.account === "org"
+              ? "用官方账号发布活动、公告与招新信息，和学生端内容形成清晰区分。"
+              : "发布校园动态、寻找学习搭子、评论互动、添加好友，让每个功能区都能独立使用。"}</p>
+            <button class="primary-btn" data-scroll-composer>立即发布</button>
+          </div>
+          <div class="hero-img" aria-hidden="true"></div>
+        </section>
+        ${composer()}
+        <section class="panel pad">
+          <div class="section-head">
+            <div class="section-title">内容筛选</div>
+            <span class="small">中间信息流可独立滚动</span>
+          </div>
+          <div class="filter-tabs">
+            ${[
+              ["all", "全部"],
+              ["student", "个人动态"],
+              ["club", "社团发布"],
+              ["friend", "好友圈"],
+              ["help", "求助/搭子"]
+            ].map(([id, label]) => `<button class="${state.filter === id ? "active" : ""}" data-filter="${id}">${label}</button>`).join("")}
+          </div>
+        </section>
+        <section class="panel" id="postList">${postList()}</section>
+      `;
+    }
+
+    function composer() {
+      const isOrg = state.account === "org";
+      return `
+        <section class="panel pad" id="composer">
+          <div class="section-head">
+            <div>
+              <div class="section-title">${isOrg ? "发布社团内容" : "发布帖子"}</div>
+              <div class="small">${isOrg ? "社团账号默认带认证标识，可发布活动、招新、公告。" : "个人账号可发布动态、求助、学习搭子，也可附带校园图片。"}</div>
+            </div>
+          </div>
+          <div class="composer">
+            <div class="composer-top">
+              <input class="field" id="postTitle" placeholder="${isOrg ? "标题，如：摄影社周末外拍报名开启" : "标题，如：求数据结构复习搭子"}" />
+              <select class="field" id="postChannel">
+                ${isOrg
+                  ? `<option value="club">社团公告</option><option value="activity">活动发布</option><option value="life">社团日常</option>`
+                  : `<option value="life">校园动态</option><option value="help">求助/搭子</option><option value="study">学习交流</option>`}
+              </select>
+            </div>
+            <textarea id="postText" placeholder="${isOrg ? "写清楚活动时间、地点、报名方式和注意事项..." : "分享你的想法、问题或组队需求..."}"></textarea>
+            <input class="field" id="postTags" placeholder="添加标签，用逗号分隔，如：期末复习,社团活动,随手拍" />
+            <div class="composer-actions">
+              <div class="tool-row">
+                <button class="tool ${state.selectedImage ? "active" : ""}" data-action="toggleImage">图片</button>
+                <button class="tool" data-fill-topic="期末复习">#期末复习</button>
+                <button class="tool" data-fill-topic="社团活动">#社团活动</button>
+                <button class="tool" data-fill-topic="学习搭子">#学习搭子</button>
+              </div>
+              <button class="primary-btn" data-action="publish">发布</button>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function postList() {
+      const query = (state.search || "").trim().toLowerCase();
+      let posts = state.posts;
+      if (state.filter === "student") posts = posts.filter(p => p.type === "student");
+      if (state.filter === "club") posts = posts.filter(p => p.type === "org");
+      if (state.filter === "friend") posts = posts.filter(p => state.friends.includes(p.authorId) || p.authorId === "me");
+      if (state.filter === "help") posts = posts.filter(p => p.channel === "help" || p.tags.join("").includes("搭子"));
+      if (query) {
+        posts = posts.filter(p => {
+          const author = userById(p.authorId).name;
+          return `${author} ${p.title} ${p.text} ${p.tags.join(" ")}`.toLowerCase().includes(query);
+        });
+      }
+      if (!posts.length) return `<div class="pad muted">没有找到匹配内容，可以换个筛选条件或发布一条新帖子。</div>`;
+      return posts.map(postCard).join("");
+    }
+
+    function postCard(post) {
+      const author = userById(post.authorId);
+      const liked = !!state.likes[post.id];
+      const followLabel = author.type === "org"
+        ? (state.follows.includes(author.id) ? "已关注" : "关注社团")
+        : (state.friends.includes(author.id) ? "已是好友" : "加好友");
+      const canConnect = !["me", "orgMe"].includes(author.id);
+      const images = post.images && post.images.length
+        ? `<div class="image-grid">${post.images.map(src => `<div class="post-image" style="background-image:url('${src}')"></div>`).join("")}</div>`
+        : "";
+      return `
+        <article class="post" data-post="${post.id}">
+          <div class="post-head">
+            <div class="avatar">${author.avatar}</div>
+            <div>
+              <div class="author">${author.name}<span class="badge ${author.type === "org" ? "org" : ""}">${author.type === "org" ? "认证社团" : "个人账号"}</span></div>
+              <div class="small">${author.meta} · ${post.time}</div>
+            </div>
+            <div class="spacer"></div>
+            ${canConnect ? `<button class="secondary-btn" data-action="connect" data-id="${author.id}">${followLabel}</button>` : ""}
+          </div>
+          <div class="post-title">${escapeHtml(post.title)}</div>
+          <p class="post-text">${escapeHtml(post.text)}</p>
+          <div class="tag-row">${post.tags.map(t => `<span class="tag"># ${escapeHtml(t)}</span>`).join("")}</div>
+          ${images}
+          <div class="post-actions">
+            <button class="${liked ? "active" : ""}" data-action="like" data-id="${post.id}">赞 ${post.baseLikes + (liked ? 1 : 0)}</button>
+            <button data-action="focusComment" data-id="${post.id}">评论 ${post.comments.length}</button>
+            <button data-action="collect" data-id="${post.id}">收藏</button>
+            <button data-action="share" data-id="${post.id}">分享</button>
+          </div>
+          <div class="comments" id="comments-${post.id}">
+            ${post.comments.map(c => `<div class="comment"><b>${escapeHtml(c[0])}：</b>${escapeHtml(c[1])}</div>`).join("")}
+          </div>
+          <div class="comment-box">
+            <input class="comment-input" data-comment-input="${post.id}" placeholder="写下评论，按发布后会即时加入讨论" />
+            <button class="primary-btn" data-action="comment" data-id="${post.id}">发布评论</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderFriendPage(feed) {
+      const people = state.users.filter(u => u.id.startsWith("u"));
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>${state.account === "org" ? "社团关注与成员触达" : "找搭子"}</h1>
+            <p>${state.account === "org" ? "社团账号在这里查看潜在成员、关注相关社团，也可以回到成员申请处理入社请求。" : "精准匹配学习生活场景，一起高效完成目标。点击加好友后会进入好友圈筛选。"} </p>
+            <button class="primary-btn" data-page="${state.account === "org" ? "members" : "home"}">${state.account === "org" ? "处理成员申请" : "查看好友圈"}</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-title">选择你的需求场景</div>
+          <div class="mini-grid" style="margin-top:12px">
+            ${["学习打卡", "自习/图书馆", "运动健身", "探店/美食", "出行/旅行", "竞赛/科创", "校园活动", "兴趣爱好", "实习/求职"].map(x => `
+              <div class="feature-card"><b>${x}</b><div class="small">系统将优先推荐相关搭子和小组</div></div>
+            `).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">${state.account === "org" ? "潜在成员" : "匹配结果"}</div><button class="text-btn">换一批</button></div>
+          <div class="rec-list" style="margin-top:12px">
+            ${people.map(u => friendRow(u)).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-title">推荐小组</div>
+          <div class="rec-list" style="margin-top:12px">
+            ${[
+              ["高数期末冲刺自习小组", "二校区图书馆 301", "剩余名额 2/6"],
+              ["周末羽毛球搭子组", "体育馆羽毛球馆", "剩余名额 1/4"],
+              ["一起备战电赛", "实验楼 5 楼", "剩余名额 3/5"]
+            ].map(g => `<div class="notice"><div class="notice-ico">组</div><div><b>${g[0]}</b><div class="small">${g[1]} · ${g[2]}</div></div><button class="primary-btn" data-action="joinGroup">申请加入</button></div>`).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function friendRow(u) {
+      const added = state.friends.includes(u.id);
+      return `
+        <div class="person">
+          <div class="avatar">${u.avatar}</div>
+          <div>
+            <div class="person-name">${u.name}</div>
+            <div class="small">${u.meta}</div>
+          </div>
+          <button class="${added ? "secondary-btn" : "primary-btn"}" data-action="connect" data-id="${u.id}">${added ? "已添加" : "加好友"}</button>
+        </div>
+      `;
+    }
+
+    function renderActivityPage(feed) {
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>${state.account === "org" ? "活动发布与报名管理" : "校园活动"}</h1>
+            <p>${state.account === "org" ? "社团账号可以发布活动、查看报名进度和发送集合提醒。" : "学生端以浏览、报名和查看活动信息为主，和社团端管理功能区分开。"}</p>
+            <button class="primary-btn" data-action="${state.account === "org" ? "createActivity" : "toast"}">${state.account === "org" ? "新建活动" : "浏览推荐活动"}</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head">
+            <div class="section-title">活动列表</div>
+            <span class="small">${state.account === "org" ? "可管理报名状态" : "可直接报名参加"}</span>
+          </div>
+          <div class="rec-list">
+            ${state.activities.map(activityCard).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function activityCard(a) {
+      const pct = Math.min(100, Math.round(a.joined / a.cap * 100));
+      return `
+        <div class="activity">
+          <img src="${a.img}" alt="${escapeHtml(a.title)}" />
+          <div style="flex:1;min-width:0">
+            <b>${a.title}</b>
+            <div class="small">${a.org} · ${a.date} · ${a.place}</div>
+            <div class="progress"><span style="width:${pct}%"></span></div>
+            <div class="small">已报名 ${a.joined}/${a.cap}</div>
+          </div>
+          <button class="${state.account === "org" ? "secondary-btn" : "primary-btn"}" data-action="${state.account === "org" ? "manageActivity" : "joinActivity"}" data-id="${a.id}">
+            ${state.account === "org" ? "管理" : "报名"}
+          </button>
+        </div>
+      `;
+    }
+
+    function renderMembersPage(feed) {
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>成员申请</h1>
+            <p>这是社团账号专属内容。个人账号不会看到审核和群发通知等管理入口。</p>
+            <button class="primary-btn" data-action="sendNotice">发布集合提醒</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-title">待处理申请</div>
+          <div class="rec-list" style="margin-top:12px">
+            ${state.applicants.map(a => `
+              <div class="mini-card">
+                <div class="section-head" style="margin-bottom:6px">
+                  <b>${a.name}</b><span class="badge">${a.status}</span>
+                </div>
+                <div class="small">${a.text}</div>
+                <div class="tool-row" style="margin-top:10px">
+                  <button class="primary-btn" data-action="approve" data-id="${a.id}">通过</button>
+                  <button class="danger-btn" data-action="reject" data-id="${a.id}">拒绝</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderNoticePage(feed) {
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>${state.account === "org" ? "通知发布" : "通知中心"}</h1>
+            <p>${state.account === "org" ? "面向成员和报名用户发布提醒，体现社团端和个人端的权限差异。" : "评论、好友、活动报名等交互都会进入通知中心。"}</p>
+            <button class="primary-btn" data-action="${state.account === "org" ? "sendNotice" : "readAll"}">${state.account === "org" ? "新建通知" : "全部已读"}</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-title">消息列表</div>
+          <div class="rec-list" style="margin-top:12px">
+            ${state.notices.map(n => `
+              <div class="notice"><div class="notice-ico">${n.type.slice(0,1)}</div><div><b>${n.type}</b><div>${escapeHtml(n.text)}</div><div class="small">${n.time}</div></div></div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderDiscussionPage(feed) {
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>讨论广场</h1>
+            <p>按学习方法、考研保研、课程推荐和校园生活分区讨论，评论与发帖逻辑和首页保持一致。</p>
+            <button class="primary-btn" data-action="prefillDiscussion">发起讨论</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head">
+            <div class="section-title">讨论分区</div>
+            <button class="text-btn">更多</button>
+          </div>
+          <div class="mini-grid">
+            ${["学习方法分享", "考研保研交流", "课程推荐分享", "求助互助区", "校园生活", "科技创新"].map(x => `
+              <div class="feature-card"><b>${x}</b><div class="small">进入分区查看热门帖子和最新回复</div></div>
+            `).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">热门讨论</div><button class="text-btn">刷新</button></div>
+          <div class="rec-list">
+            ${state.discussions.map(d => `
+              <div class="activity">
+                <img src="${d.img}" alt="${escapeHtml(d.title)}" />
+                <div style="flex:1;min-width:0">
+                  <b>${d.title}</b>
+                  <div class="small">${d.user} · ${d.area}</div>
+                  <div class="chip-row" style="margin-top:8px"><span class="chip">赞 ${d.likes}</span><span class="chip">回复 ${d.replies}</span><span class="chip">2小时前</span></div>
+                </div>
+                <button class="secondary-btn" data-action="replyDiscussion" data-title="${escapeHtml(d.title)}">回复</button>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderSchedulePage(feed) {
+      const courses = [
+        ["周一", "08:00", "高等数学A", "主楼 N201"],
+        ["周一", "10:00", "数据结构", "主楼 N302"],
+        ["周二", "10:00", "计算机网络", "主楼 N201"],
+        ["周三", "14:00", "操作系统", "主楼 S305"],
+        ["周五", "18:30", "英语听说", "主楼 N105"]
+      ];
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>日程小助手</h1>
+            <p>把课程、待办、活动和计划打卡集中管理，页面区域保持独立滚动。</p>
+            <button class="primary-btn" data-action="toast">智能规划</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">本周课程表</div><button class="secondary-btn">进入课程表</button></div>
+          <div class="mini-grid">
+            ${courses.map(c => `<div class="feature-card"><b>${c[0]} ${c[1]}</b><div>${c[2]}</div><div class="small">${c[3]}</div></div>`).join("")}
+          </div>
+        </section>
+        <section class="two-col">
+          <div class="panel pad">
+            <div class="section-title">今日待办</div>
+            ${["完成数据结构作业", "阅读《计算机网络》第二章", "参加校学生会部门例会", "准备英语听说考试"].map((x, i) => `
+              <div class="notice"><div class="notice-ico">${i + 1}</div><div><b>${x}</b><div class="small">${i < 2 ? "学习" : "工作"} · 今天</div></div></div>
+            `).join("")}
+          </div>
+          <div class="panel pad">
+            <div class="section-title">计划打卡</div>
+            <div class="dashboard-grid" style="margin-top:12px">
+              <div class="dash"><b>23</b><span class="small">连续打卡</span></div>
+              <div class="dash"><b>18</b><span class="small">获得徽章</span></div>
+              <div class="dash"><b>2568</b><span class="small">积分</span></div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderHelpPage(feed) {
+      feed.innerHTML = `
+        <section class="panel hero">
+          <div>
+            <h1>求助与校园服务</h1>
+            <p>整合平台规则、二手市场、跑腿代办和互助问答，让求助功能不再只是通知入口。</p>
+            <button class="primary-btn" data-action="prefillHelp">发布求助</button>
+          </div>
+          <div class="hero-img"></div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">平台规则</div><button class="text-btn">查看全部</button></div>
+          <div class="mini-grid">
+            ${[
+              ["平台规则", "了解社区基本行为准则和内容规范"],
+              ["私聊规则", "保护个人隐私，避免骚扰信息"],
+              ["找搭子规则", "信息真实准确，目标明确"],
+              ["举报与反馈", "遇到问题及时反馈处理"]
+            ].map(x => `<div class="feature-card"><b>${x[0]}</b><div class="small">${x[1]}</div><button class="secondary-btn" style="margin-top:10px">查看详情</button></div>`).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">二手市场</div><button class="primary-btn" data-action="sellItem">发布闲置</button></div>
+          <div class="market-grid">
+            ${state.market.map(m => `
+              <div class="market-card">
+                <img src="${m.img}" alt="${escapeHtml(m.title)}" />
+                <div class="pad">
+                  <b>${m.title}</b>
+                  <div class="price">￥${m.price}</div>
+                  <div class="small">${m.seller} · 哈工大一区</div>
+                  <button class="secondary-btn" style="width:100%;margin-top:10px" data-action="askMarket">联系卖家</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">跑腿代办</div><button class="text-btn">我的订单</button></div>
+          <div class="mini-grid">
+            ${["帮取快递", "帮买东西", "帮送文件", "帮占座位", "帮打印", "其他服务"].map((x, i) => `
+              <div class="feature-card"><b>${x}</b><div class="small">校园互助服务 · 预计酬劳 ￥${i + 3}</div><button class="primary-btn" style="margin-top:10px" data-action="takeErrand">接单</button></div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderRight() {
+      const orgs = state.users.filter(u => u.type === "org" && u.id !== "orgMe");
+      const people = state.users.filter(u => u.id.startsWith("u"));
+      const targetList = state.account === "org" ? people : orgs;
+      document.getElementById("rightAside").innerHTML = `
+        <section class="panel pad">
+          <div class="section-head">
+            <div class="section-title">通知中心</div>
+            <button class="text-btn" data-page="notice">全部已读</button>
+          </div>
+          <div class="rec-list">
+            ${state.notices.slice(0, 4).map(n => `<div class="notice"><div class="notice-ico">${n.type.slice(0, 1)}</div><div><b>${n.type}</b><div class="small">${escapeHtml(n.text)}</div><div class="small">${n.time}</div></div></div>`).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head">
+            <div class="section-title">${state.account === "org" ? "成员申请" : "在线好友"}</div>
+            <button class="text-btn" data-page="${state.account === "org" ? "members" : "friend"}">查看</button>
+          </div>
+          <div class="rec-list">${people.slice(0, 3).map(friendRow).join("")}</div>
+        </section>
+      `;
+    }
+
+    function renderWidgets() {
+      const widgets = document.getElementById("centerWidgets");
+      if (!widgets) return;
+      if (state.account === "org") {
+        widgets.innerHTML = `
+          <section class="panel pad">
+            <div class="section-head"><div class="section-title">社团数据</div><span class="small">今日</span></div>
+            ${orgDashboard()}
+          </section>
+          <section class="panel pad">
+            <div class="section-head"><div class="section-title">快捷管理</div><button class="text-btn">全部</button></div>
+            <div class="mini-grid">
+              ${[["活动管理","activity"],["成员申请","members"],["通知发布","notice"],["官方内容","club"],["数据看板","home"],["资料设置","home"]].map(x => `<div class="feature-card" data-page="${x[1]}"><b>${x[0]}</b><div class="small">点击进入</div></div>`).join("")}
+            </div>
+          </section>
+          <section class="panel pad">
+            <div class="section-head"><div class="section-title">活动概览</div><button class="text-btn" data-page="activity">更多</button></div>
+            <div class="rec-list">${state.activities.slice(0, 3).map(activityCard).join("")}</div>
+          </section>
+        `;
+        return;
+      }
+      widgets.innerHTML = `
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">功能导航</div><button class="text-btn">全部</button></div>
+          <div class="mini-grid">
+            ${[["交友","friend"],["记录","schedule"],["通知","notice"],["求助","help"],["讨论","discussion"]].map(x => `<div class="feature-card" data-page="${x[1]}"><b>${x[0]}</b><div class="small">查看${x[0]}功能</div></div>`).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">热门话题</div><button class="text-btn" data-page="discussion">更多</button></div>
+          <div class="rec-list">
+            ${["春日校园随手拍", "期末复习资料分享", "HIT美食地图", "运动打卡挑战", "新生入学指南"].map((x, i) => `<div class="notice"><div class="notice-ico">#</div><div><b>${x}</b><div class="small">${["1.2万", "9863", "8124", "6421", "5120"][i]} 浏览</div></div></div>`).join("")}
+          </div>
+        </section>
+        <section class="panel pad">
+          <div class="section-head"><div class="section-title">校园活动</div><button class="text-btn" data-page="activity">更多</button></div>
+          <div class="rec-list">${state.activities.slice(0, 3).map(activityCard).join("")}</div>
+        </section>
+      `;
+    }
+
+    function orgDashboard() {
+      return `
+        <div class="dashboard-grid">
+          <div class="dash"><b>18%</b><span class="small">互动增长</span></div>
+          <div class="dash"><b>${state.applicants.filter(a => a.status === "待处理").length}</b><span class="small">待审核</span></div>
+          <div class="dash"><b>3</b><span class="small">本周活动</span></div>
+        </div>
+      `;
+    }
+
+    function recommended(list) {
+      return `<div class="rec-list">${list.map(u => `
+        <div class="person">
+          <div class="avatar">${u.avatar}</div>
+          <div>
+            <div class="person-name">${u.name}</div>
+            <div class="small">${u.meta}</div>
+          </div>
+          <button class="${state.follows.includes(u.id) ? "secondary-btn" : "primary-btn"}" data-action="connect" data-id="${u.id}">
+            ${state.follows.includes(u.id) ? "已关注" : "关注"}
+          </button>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function iconFor(id) {
+      return {
+        home: "⌂",
+        friend: "友",
+        club: "社",
+        activity: "动",
+        notice: "信",
+        schedule: "记",
+        discussion: "讨",
+        help: "助",
+        members: "审",
+        reset: "↺"
+      }[id] || "•";
+    }
+
+    function publishPost() {
+      const title = document.getElementById("postTitle").value.trim();
+      const text = document.getElementById("postText").value.trim();
+      const channel = document.getElementById("postChannel").value;
+      const tags = document.getElementById("postTags").value
+        .split(/[,，#]/)
+        .map(t => t.trim())
+        .filter(Boolean);
+      if (!title || !text) return toast("请先填写标题和内容");
+
+      const me = currentUser();
+      const imgStart = Math.floor(Math.random() * (imagePool.length - 2));
+      state.posts.unshift({
+        id: `p${Date.now()}`,
+        authorId: me.id,
+        type: state.account === "org" ? "org" : "student",
+        channel,
+        title,
+        text,
+        tags: tags.length ? tags : [state.account === "org" ? "社团发布" : "校园动态"],
+        images: state.selectedImage ? imagePool.slice(imgStart, imgStart + (state.account === "org" ? 1 : 2)) : [],
+        time: "刚刚",
+        baseLikes: 0,
+        comments: []
+      });
+      me.posts += 1;
+      state.notices.unshift({ id: `n${Date.now()}`, type: "发布", text: `你发布了新内容：${title}`, time: "刚刚" });
+      save();
+      render();
+      toast("帖子已发布到信息流");
+    }
+
+    function connect(id) {
+      const u = userById(id);
+      if (u.type === "org") {
+        state.follows = state.follows.includes(id) ? state.follows.filter(x => x !== id) : [...state.follows, id];
+        state.notices.unshift({ id: `n${Date.now()}`, type: "关注", text: `${state.follows.includes(id) ? "已关注" : "已取消关注"} ${u.name}`, time: "刚刚" });
+      } else {
+        if (!state.friends.includes(id)) {
+          state.friends.push(id);
+          state.notices.unshift({ id: `n${Date.now()}`, type: "好友", text: `你已添加 ${u.name} 为好友`, time: "刚刚" });
+        }
+      }
+      save();
+      render();
+      toast(u.type === "org" ? "社团关注状态已更新" : "好友已添加，可在好友圈查看");
+    }
+
+    function addComment(id) {
+      const input = document.querySelector(`[data-comment-input="${id}"]`);
+      const text = input.value.trim();
+      if (!text) return toast("请输入评论内容");
+      const post = state.posts.find(p => p.id === id);
+      post.comments.push([currentUser().name, text]);
+      state.notices.unshift({ id: `n${Date.now()}`, type: "评论", text: `你评论了：${post.title}`, time: "刚刚" });
+      save();
+      render();
+      setTimeout(() => document.querySelector(`[data-post="${id}"]`)?.scrollIntoView({ block: "center" }), 0);
+      toast("评论已发布");
+    }
+
+    function joinActivity(id) {
+      const activity = state.activities.find(a => a.id === id);
+      if (!activity) return;
+      if (activity.joined < activity.cap) activity.joined += 1;
+      state.notices.unshift({ id: `n${Date.now()}`, type: "活动", text: `你已报名：${activity.title}`, time: "刚刚" });
+      save();
+      render();
+      toast("报名成功，活动已加入通知中心");
+    }
+
+    function createActivity() {
+      const me = currentUser();
+      state.activities.unshift({
+        id: `a${Date.now()}`,
+        title: "摄影社校园夜景速拍活动",
+        org: me.name,
+        date: "周五 20:00",
+        place: "主楼广场",
+        joined: 0,
+        cap: 60,
+        img: imagePool[7]
+      });
+      state.notices.unshift({ id: `n${Date.now()}`, type: "活动", text: `${me.name} 新建了活动：摄影社校园夜景速拍活动`, time: "刚刚" });
+      save();
+      render();
+      toast("社团活动已创建");
+    }
+
+    function manageActivity(id) {
+      const activity = state.activities.find(a => a.id === id);
+      state.notices.unshift({ id: `n${Date.now()}`, type: "管理", text: `已向报名用户发送提醒：${activity.title}`, time: "刚刚" });
+      save();
+      render();
+      toast("已发送活动集合提醒");
+    }
+
+    function updateApplicant(id, status) {
+      const applicant = state.applicants.find(a => a.id === id);
+      if (applicant) applicant.status = status;
+      state.notices.unshift({ id: `n${Date.now()}`, type: "审核", text: `${applicant.name} 的申请状态：${status}`, time: "刚刚" });
+      save();
+      render();
+      toast(`申请已${status}`);
+    }
+
+    function sendNotice() {
+      state.notices.unshift({ id: `n${Date.now()}`, type: "社团通知", text: `${currentUser().name}：本周活动集合时间请以最新通知为准。`, time: "刚刚" });
+      save();
+      render();
+      toast("社团通知已发布");
+    }
+
+    function resetDemo() {
+      localStorage.removeItem(storeKey);
+      state = JSON.parse(JSON.stringify(seed));
+      render();
+      toast("演示数据已重置");
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("click", event => {
+      const pageBtn = event.target.closest("[data-page]");
+      if (pageBtn) {
+        if (pageBtn.dataset.page === "reset") return resetDemo();
+        return setPage(pageBtn.dataset.page);
+      }
+
+      const accountBtn = event.target.closest("[data-account]");
+      if (accountBtn) return switchAccount(accountBtn.dataset.account);
+
+      const filterBtn = event.target.closest("[data-filter]");
+      if (filterBtn) {
+        state.filter = filterBtn.dataset.filter;
+        save();
+        return renderFeed();
+      }
+
+      if (event.target.closest("[data-scroll-composer]")) {
+        document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      const topicBtn = event.target.closest("[data-fill-topic]");
+      if (topicBtn) {
+        const input = document.getElementById("postTags");
+        const topic = topicBtn.dataset.fillTopic;
+        input.value = input.value ? `${input.value},${topic}` : topic;
+        input.focus();
+      }
+
+      const actionEl = event.target.closest("[data-action]");
+      if (!actionEl) return;
+      const id = actionEl.dataset.id;
+      const actionMap = {
+        login,
+        publish: publishPost,
+        toggleImage: () => { state.selectedImage = !state.selectedImage; save(); renderFeed(); },
+        connect: () => connect(id),
+        like: () => { state.likes[id] = !state.likes[id]; save(); renderFeed(); },
+        focusComment: () => document.querySelector(`[data-comment-input="${id}"]`)?.focus(),
+        comment: () => addComment(id),
+        collect: () => toast("已收藏到个人账号内容区"),
+        share: () => toast("分享链接已复制"),
+        joinActivity: () => joinActivity(id),
+        createActivity,
+        manageActivity: () => manageActivity(id),
+        prefillDiscussion: () => {
+          setPage("home");
+          setTimeout(() => {
+            document.getElementById("postTitle").value = "关于期末复习节奏，大家怎么安排？";
+            document.getElementById("postText").value = "想听听不同学院同学的复习安排，也欢迎分享资料和自习地点。";
+            document.getElementById("postTags").value = "讨论,期末复习,学习方法";
+            document.getElementById("postChannel").value = "study";
+            document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 0);
+        },
+        replyDiscussion: () => toast(`已进入讨论回复：${actionEl.dataset.title || ""}`),
+        prefillHelp: () => {
+          setPage("home");
+          setTimeout(() => {
+            document.getElementById("postTitle").value = "求助：高数证明题不会做";
+            document.getElementById("postText").value = "这道题的第三问卡住了，求大佬指点一下思路，感谢！";
+            document.getElementById("postTags").value = "求助,高数,学习互助";
+            document.getElementById("postChannel").value = "help";
+            document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 0);
+        },
+        sellItem: () => toast("闲置发布入口已打开：演示版已在二手市场展示发布位"),
+        askMarket: () => toast("已向卖家发送咨询消息"),
+        takeErrand: () => toast("接单成功，请在通知中心查看联系方式"),
+        joinGroup: () => toast("已提交加入小组申请"),
+        approve: () => updateApplicant(id, "通过"),
+        reject: () => updateApplicant(id, "拒绝"),
+        sendNotice,
+        readAll: () => toast("所有通知已标记为已读"),
+        toast: () => toast("可以在活动列表中选择报名"),
+      };
+      actionMap[actionEl.dataset.action]?.();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      const input = event.target.closest("[data-comment-input]");
+      if (input) addComment(input.dataset.commentInput);
+    });
+
+    document.getElementById("searchInput").addEventListener("input", event => {
+      state.search = event.target.value;
+      save();
+      renderFeed();
+    });
+
+    render();
+  </script>
+</body>
+</html>
